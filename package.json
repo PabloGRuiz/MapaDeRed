@@ -6,12 +6,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "node -e \"const fs=require('fs'); fs.mkdirSync('public/lib/maplibre', {recursive:true}); fs.copyFileSync('node_modules/maplibre-gl/dist/maplibre-gl-worker.mjs', 'public/lib/maplibre/maplibre-gl-worker.mjs'); fs.copyFileSync('node_modules/maplibre-gl/dist/maplibre-gl-shared.mjs', 'public/lib/maplibre/maplibre-gl-shared.mjs');\""
   },
   "dependencies": {
+    "@types/jszip": "^3.4.0",
+    "jszip": "^3.10.2",
+    "lucide-react": "^1.47.0",
+    "maplibre-gl": "^6.11.1",
     "next": "16.3.6",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/node": "^20",

@@ -1,69 +1,220 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
+
+import React, { useState, useMemo } from 'react';
+import dynamic from 'next/dynamic';
+import { Header } from '@/components/UI/Header';
+import { Sidebar } from '@/components/UI/Sidebar';
+import { NodeDetailModal } from '@/components/UI/NodeDetailModal';
+import { CentralAuditDashboardModal } from '@/components/Audit/CentralAuditDashboardModal';
+import { CreateSiteWizardModal } from '@/components/Wizard/CreateSiteWizardModal';
+import { CreateLinkModal } from '@/components/Wizard/CreateLinkModal';
+import { ARGENTINA_CENTER, ARGENTINA_DEFAULT_ZOOM } from '@/data/mockNodes';
+import { NetworkNode, MapStyleMode, FilterState, NodeType } from '@/types/network';
+import { NetworkCentralProvider, useNetworkCentral } from '@/context/NetworkCentralContext';
+
+// Dynamically import Map component to ensure client-side only execution without SSR issues
+const InteractiveMap = dynamic(
+  () => import('@/components/Map/InteractiveMap').then(mod => mod.InteractiveMap),
+  { ssr: false }
+);
+
+const ALL_TYPES: NodeType[] = [
+  'submarine_cable',
+  'datacenter',
+  'core_backbone',
+  '5g_tower',
+  'energy_hub'
+];
+
+function HomeContent() {
+  const { 
+    nodes, 
+    links,
+    selectedNode, 
+    setSelectedNode, 
+    isDashboardOpen, 
+    setIsDashboardOpen,
+    isWizardOpen,
+    setIsWizardOpen,
+    isLinkModalOpen,
+    setIsLinkModalOpen
+  } = useNetworkCentral();
+
+  const [currentStyle, setCurrentStyle] = useState<MapStyleMode>('dark');
+  const [headerHeight, setHeaderHeight] = useState<number>(72);
+  const [targetCoords, setTargetCoords] = useState<{
+    coords: [number, number];
+    zoom?: number;
+    pitch?: number;
+    timestamp: number;
+  } | null>(null);
+
+  const [filters, setFilters] = useState<FilterState>({
+    searchQuery: '',
+    types: ALL_TYPES,
+    status: 'all',
+    auditStatus: 'all',
+    maxLatency: 45
+  });
+
+  // Filter nodes based on user criteria (search, category, status, auditStatus, latency)
+  const filteredNodes = useMemo(() => {
+    return nodes.filter((node) => {
+      // Search query
+      if (filters.searchQuery.trim()) {
+        const query = filters.searchQuery.toLowerCase();
+        const matchesName = node.name.toLowerCase().includes(query);
+        const matchesCity = node.city.toLowerCase().includes(query);
+        const matchesProvince = node.province.toLowerCase().includes(query);
+        const matchesObs = (node.observations || node.description || '').toLowerCase().includes(query);
+        const matchesAsn = (node.asn || '').toLowerCase().includes(query);
+        if (!matchesName && !matchesCity && !matchesProvince && !matchesObs && !matchesAsn) {
+          return false;
+        }
+      }
+
+      // Type filter
+      if (!filters.types.includes(node.type)) {
+        return false;
+      }
+
+      // Operational Status filter
+      if (filters.status !== 'all' && node.status !== filters.status) {
+        return false;
+      }
+
+      // Audit Status filter
+      if (filters.auditStatus !== 'all' && node.auditStatus !== filters.auditStatus) {
+        return false;
+      }
+
+      // Max latency (si tiene latencia configurada)
+      if (node.latency !== undefined && node.latency > filters.maxLatency) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [nodes, filters]);
+
+  // Links connecting to visible nodes
+  const activeLinks = useMemo(() => {
+    const visibleNodeIds = new Set(filteredNodes.map(n => n.id));
+    return links.filter(
+      link => visibleNodeIds.has(link.sourceId) && visibleNodeIds.has(link.targetId)
+    );
+  }, [filteredNodes, links]);
+
+  const handleFlyTo = (coords: [number, number], zoom = 7.5, pitch = 45) => {
+    setTargetCoords({
+      coords,
+      zoom,
+      pitch,
+      timestamp: Date.now()
+    });
+  };
+
+  const handleResetToArgentina = () => {
+    setSelectedNode(null);
+    handleFlyTo(ARGENTINA_CENTER, ARGENTINA_DEFAULT_ZOOM, 25);
+  };
+
+  const handleSelectNode = (node: NetworkNode | null) => {
+    setSelectedNode(node);
+    if (node) {
+      handleFlyTo(node.coordinates, 8, 48);
+    }
+  };
+
+  const handleDashboardInspect = (node: NetworkNode) => {
+    setIsDashboardOpen(false);
+    handleSelectNode(node);
+  };
+
+  return (
+    <main style={{
+      position: 'relative',
+      width: '100vw',
+      height: '100vh',
+      overflow: 'hidden',
+      backgroundColor: '#060911'
+    }}>
+      {/* Top Header */}
+      <Header
+        currentStyle={currentStyle}
+        onStyleChange={setCurrentStyle}
+        totalNodes={filteredNodes.length}
+        activeLinksCount={activeLinks.length}
+        onResetView={handleResetToArgentina}
+        onOpenDashboard={() => setIsDashboardOpen(true)}
+        onHeightChange={setHeaderHeight}
+      />
+
+      {/* Main Interactive Map */}
+      <InteractiveMap
+        nodes={filteredNodes}
+        links={activeLinks}
+        selectedNode={selectedNode}
+        onSelectNode={handleSelectNode}
+        currentStyle={currentStyle}
+        targetCoords={targetCoords}
+      />
+
+      {/* Left Collapsible Glassmorphic Sidebar with Audit Filters */}
+      <Sidebar
+        nodes={filteredNodes}
+        selectedNode={selectedNode}
+        onSelectNode={handleSelectNode}
+        filters={filters}
+        onFilterChange={setFilters}
+        topOffset={headerHeight + 20}
+      />
+
+      {/* Node Detail Floating Card with Visio / Excel / Telemetry / Improvements Tabs */}
+      {selectedNode && (
+        <NodeDetailModal
+          node={selectedNode}
+          allNodes={nodes}
+          links={links}
+          onClose={() => setSelectedNode(null)}
+          onFlyTo={(coords, zoom) => handleFlyTo(coords, zoom ?? 8, 50)}
+          onSelectNode={handleSelectNode}
+        />
+      )}
+
+      {/* Central NOC National Audit Dashboard Modal */}
+      {isDashboardOpen && (
+        <CentralAuditDashboardModal
+          onClose={() => setIsDashboardOpen(false)}
+          onFlyToNode={handleDashboardInspect}
+        />
+      )}
+
+      {/* Guided Wizard to Add New Network Site Step-by-Step */}
+      {isWizardOpen && (
+        <CreateSiteWizardModal
+          onClose={() => setIsWizardOpen(false)}
+          onSuccess={(newNode) => {
+            setIsWizardOpen(false);
+            handleSelectNode(newNode);
+          }}
+        />
+      )}
+
+      {/* Modal to Configure and Connect Links Between Sites */}
+      {isLinkModalOpen && (
+        <CreateLinkModal
+          onClose={() => setIsLinkModalOpen(false)}
+        />
+      )}
+    </main>
+  );
+}
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>
-            To get started, edit the{" "}
-            <code className={styles.code}>page.tsx</code> file.
-          </h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <NetworkCentralProvider>
+      <HomeContent />
+    </NetworkCentralProvider>
   );
 }

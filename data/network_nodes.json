@@ -1,0 +1,135 @@
+[
+  {
+    "name": "Batallón de arsenales 601",
+    "city": "Boulogne",
+    "province": "Buenos Aires",
+    "coordinates": [
+      -58.56589,
+      -34.50259
+    ],
+    "type": "core_backbone",
+    "status": "operational",
+    "observations": "",
+    "connectedTo": [],
+    "description": "Puesto de red ubicado en Boulogne, Buenos Aires.",
+    "auditStatus": "pending_submission",
+    "inventory": [],
+    "improvements": [],
+    "id": "node-puesto-1790260984026"
+  },
+  {
+    "name": "Facultad de Ingeniería del Ejército Grl. Div. Manuel N. Savio",
+    "city": "Palermo",
+    "province": "CABA",
+    "coordinates": [
+      -58.43554,
+      -34.57433
+    ],
+    "type": "core_backbone",
+    "status": "operational",
+    "observations": "",
+    "connectedTo": [],
+    "description": "Puesto de red ubicado en Palermo, CABA.",
+    "auditStatus": "pending_submission",
+    "inventory": [],
+    "improvements": [],
+    "id": "node-puesto-1790260113791"
+  },
+  {
+    "name": "Colegio Militar De La Nación",
+    "city": "El Palomar",
+    "province": "Buenos Aires",
+    "coordinates": [
+      -58.60009,
+      -34.60331
+    ],
+    "type": "core_backbone",
+    "status": "operational",
+    "observations": "",
+    "connectedTo": [],
+    "description": "Puesto de red ubicado en El Palomar, Buenos Aires.",
+    "auditStatus": "pending_submission",
+    "inventory": [],
+    "improvements": [],
+    "id": "node-puesto-1790259694251"
+  },
+  {
+    "name": "Regimiento de Infantería 1 Patricios",
+    "city": "Palermo",
+    "province": "CABA",
+    "coordinates": [
+      -58.42737,
+      -34.57558
+    ],
+    "type": "core_backbone",
+    "status": "operational",
+    "observations": "",
+    "connectedTo": [],
+    "description": "Puesto de red ubicado en Palermo, CABA.",
+    "auditStatus": "pending_submission",
+    "inventory": [],
+    "improvements": [],
+    "id": "node-puesto-1790259408728"
+  },
+  {
+    "name": "Dirección General de Salud del Ejército Argentino",
+    "city": "Constitución",
+    "province": "Buenos Aires",
+    "coordinates": [
+      -58.39145,
+      -34.63182
+    ],
+    "type": "core_backbone",
+    "status": "operational",
+    "observations": "",
+    "connectedTo": [],
+    "description": "Puesto de red ubicado en Constitución, Buenos Aires.",
+    "auditStatus": "pending_submission",
+    "inventory": [],
+    "improvements": [],
+    "id": "node-puesto-1790259033343"
+  },
+  {
+    "name": "Museo Histórico del Ejército Argentino (Oficial)",
+    "city": "Ciudadela",
+    "province": "Buenos Aires",
+    "coordinates": [
+      -58.54395,
+      -34.63122
+    ],
+    "type": "core_backbone",
+    "status": "operational",
+    "observations": "",
+    "connectedTo": [],
+    "description": "Puesto de red ubicado en Ciudadela, Buenos Aires.",
+    "auditStatus": "pending_submission",
+    "inventory": [],
+    "improvements": [],
+    "id": "node-puesto-1790258537465"
+  },
+  {
+    "name": "Agrupación de Comunicaciones 601",
+    "city": "City Bell",
+    "province": "Buenos Aires",
+    "coordinates": [
+      -58.03871,
+      -34.87337
+    ],
+    "type": "core_backbone",
+    "status": "operational",
+    "capacity": "1 Gbps",
+    "latency": 12,
+    "uptime": "99.980%",
+    "connectedTo": [],
+    "description": "Puesto de red ubicado en City Bell, Buenos Aires.",
+    "asn": "AS28000",
+    "hardware": "Router Cisco ISR 4331 + Switch Catalyst 9200",
+    "cooling": "Aire Acondicionado Split Confort Inverter",
+    "powerBackup": "UPS APC Smart-UPS 2200VA On-Line",
+    "trafficUsage": 35,
+    "auditStatus": "pending_submission",
+    "inventory": [],
+    "improvements": [],
+    "id": "node-puesto-1790256426323"
+  }
+]
