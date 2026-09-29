@@ -12,7 +12,8 @@ import {
   Info,
   FileText,
   MapPin,
-  Trash2
+  Trash2,
+  QrCode
 } from 'lucide-react';
 import { NetworkNode, NetworkLink } from '@/types/network';
 import { AuditStatusBadge } from '@/components/Audit/AuditStatusBadge';
@@ -20,12 +21,14 @@ import { VisioDiagramViewer } from '@/components/Audit/VisioDiagramViewer';
 import { InventoryExcelTable } from '@/components/Audit/InventoryExcelTable';
 import { ImprovementsList } from '@/components/Audit/ImprovementsList';
 import { UploadAuditModal } from '@/components/Audit/UploadAuditModal';
+import { NodeQRCodeModal } from '@/components/Audit/NodeQRCodeModal';
 import { useNetworkCentral } from '@/context/NetworkCentralContext';
 
 interface NodeDetailModalProps {
   node: NetworkNode;
   allNodes: NetworkNode[];
   links: NetworkLink[];
+  initialTab?: TabType;
   onClose: () => void;
   onFlyTo: (coords: [number, number], zoom?: number) => void;
   onSelectNode: (node: NetworkNode) => void;
@@ -37,6 +40,7 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
   node,
   allNodes,
   links,
+  initialTab = 'info',
   onClose,
   onFlyTo,
   onSelectNode,
@@ -48,8 +52,16 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
     setLinkDefaultSourceId, 
     deleteLink 
   } = useNetworkCentral();
-  const [activeTab, setActiveTab] = useState<TabType>('info');
+  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+
+  // Sincronizar initialTab si cambia desde la URL
+  React.useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
 
   // Find links connected to this node
   const connectedLinks = links.filter(
@@ -152,6 +164,32 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
                 }}
               >
                 <Trash2 size={15} />
+              </button>
+
+              <button
+                onClick={() => setShowQRModal(true)}
+                title="Generar Código QR de Rack y Ficha Técnica Imprimible"
+                style={{
+                  background: 'rgba(0, 242, 254, 0.15)',
+                  border: '1px solid rgba(0, 242, 254, 0.35)',
+                  color: '#00f2fe',
+                  borderRadius: '8px',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(0, 242, 254, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(0, 242, 254, 0.15)';
+                }}
+              >
+                <QrCode size={16} />
               </button>
 
               <button
@@ -562,6 +600,15 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
         <UploadAuditModal
           node={node}
           onClose={() => setShowUploadModal(false)}
+        />
+      )}
+
+      {/* QR Code and Printable Rack Sheet Modal */}
+      {showQRModal && (
+        <NodeQRCodeModal
+          node={node}
+          onClose={() => setShowQRModal(false)}
+          defaultTab={activeTab === 'visio' ? 'visio' : activeTab === 'excel' ? 'inventory' : 'visio'}
         />
       )}
     </>

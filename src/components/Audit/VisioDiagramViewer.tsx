@@ -22,12 +22,14 @@ import {
   FileSpreadsheet,
   Camera,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  QrCode
 } from 'lucide-react';
 import { NetworkNode, DiagramFileType } from '@/types/network';
 import { useNetworkCentral } from '@/context/NetworkCentralContext';
 import { SAMPLE_VISIO_SVG_TOPOLOGY } from '@/data/mockAudits';
 import { downloadDiagramFile, detectDiagramFileType, processUploadedDiagramFile } from '@/utils/diagramFileHelpers';
+import { NodeQRCodeModal } from '@/components/Audit/NodeQRCodeModal';
 
 interface VisioDiagramViewerProps {
   node: NetworkNode;
@@ -46,6 +48,7 @@ export const VisioDiagramViewer: React.FC<VisioDiagramViewerProps> = ({
   
   // Height expansion in panel
   const [isExpandedHeight, setIsExpandedHeight] = useState(false);
+  const [showQR, setShowQR] = useState(false);
 
   // Fullscreen Lightbox Modal State
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -365,6 +368,28 @@ export const VisioDiagramViewer: React.FC<VisioDiagramViewerProps> = ({
           >
             <Download size={13} color="#00f2fe" />
             <span>Descargar Archivo</span>
+          </button>
+
+          {/* Botón Generar QR de Rack */}
+          <button
+            onClick={() => setShowQR(true)}
+            title="Generar código QR de este esquema para la puerta del rack"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              background: 'rgba(0, 242, 254, 0.12)',
+              border: '1px solid rgba(0, 242, 254, 0.35)',
+              color: '#00f2fe',
+              borderRadius: '6px',
+              padding: '5px 10px',
+              fontSize: '11px',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            <QrCode size={13} />
+            <span>QR Rack</span>
           </button>
 
           {/* Expand / Fullscreen Lightbox Button (Solo si hay imagen real cargada) */}
@@ -1168,6 +1193,15 @@ export const VisioDiagramViewer: React.FC<VisioDiagramViewerProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal de Código QR de Rack */}
+      {showQR && (
+        <NodeQRCodeModal
+          node={node}
+          onClose={() => setShowQR(false)}
+          defaultTab="visio"
+        />
       )}
     </div>
   );

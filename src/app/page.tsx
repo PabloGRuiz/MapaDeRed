@@ -105,6 +105,8 @@ function HomeContent() {
     );
   }, [filteredNodes, links]);
 
+  const [urlTab, setUrlTab] = useState<'info' | 'visio' | 'excel' | 'improvements'>('info');
+
   const handleFlyTo = (coords: [number, number], zoom = 7.5, pitch = 45) => {
     setTargetCoords({
       coords,
@@ -117,14 +119,59 @@ function HomeContent() {
   const handleResetToArgentina = () => {
     setSelectedNode(null);
     handleFlyTo(ARGENTINA_CENTER, ARGENTINA_DEFAULT_ZOOM, 25);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('node');
+      url.searchParams.delete('tab');
+      window.history.replaceState({}, '', url.pathname);
+    }
   };
 
   const handleSelectNode = (node: NetworkNode | null) => {
     setSelectedNode(node);
     if (node) {
       handleFlyTo(node.coordinates, 8, 48);
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        url.searchParams.set('node', node.id);
+        window.history.replaceState({}, '', url.toString());
+      }
+    } else {
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('node');
+        url.searchParams.delete('tab');
+        window.history.replaceState({}, '', url.pathname);
+      }
     }
   };
+
+  // Deep Linking: Leer parámetros de URL al montar la página (ej: ?node=cordoba&tab=visio)
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const params = new URLSearchParams(window.location.search);
+    const nodeParam = params.get('node');
+    const tabParam = params.get('tab');
+
+    if (tabParam === 'visio' || tabParam === 'excel' || tabParam === 'inventory' || tabParam === 'improvements' || tabParam === 'info') {
+      setUrlTab(tabParam === 'inventory' ? 'excel' : (tabParam as 'info' | 'visio' | 'excel' | 'improvements'));
+    }
+
+    if (nodeParam && nodes.length > 0) {
+      const cleanParam = nodeParam.toLowerCase().trim();
+      const match = nodes.find(n => 
+        n.id.toLowerCase() === cleanParam ||
+        n.city.toLowerCase() === cleanParam ||
+        n.name.toLowerCase() === cleanParam
+      );
+
+      if (match) {
+        setSelectedNode(match);
+        handleFlyTo(match.coordinates, 8, 48);
+      }
+    }
+  }, [nodes]);
 
   const handleDashboardInspect = (node: NetworkNode) => {
     setIsDashboardOpen(false);
@@ -176,7 +223,8 @@ function HomeContent() {
           node={selectedNode}
           allNodes={nodes}
           links={links}
-          onClose={() => setSelectedNode(null)}
+          initialTab={urlTab}
+          onClose={() => handleSelectNode(null)}
           onFlyTo={(coords, zoom) => handleFlyTo(coords, zoom ?? 8, 50)}
           onSelectNode={handleSelectNode}
         />

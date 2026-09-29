@@ -327,3 +327,48 @@ body {
   object-fit: contain;
 }
 
+/* ==========================================================================
+   Print Styles for Official Printable Rack Sheets
+   ========================================================================== */
+@media print {
+  /* Ocultar elementos de pantalla e interfaz */
+  body, html {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .no-print,
+  .no-print * {
+    display: none !important;
+  }
+
+  /* Mostrar exclusivamente la ficha imprimible de rack */
+  #printable-rack-sheet,
+  #printable-rack-sheet * {
+    visibility: visible !important;
+  }
+
+  #printable-rack-sheet {
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 10mm 15mm !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+}
+
